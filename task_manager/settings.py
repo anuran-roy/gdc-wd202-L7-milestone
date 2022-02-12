@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "tasks",
+    "rest_framework_nested",
 ]
 
 MIDDLEWARE = [

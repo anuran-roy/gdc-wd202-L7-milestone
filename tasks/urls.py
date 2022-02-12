@@ -13,18 +13,27 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path
+from django.urls import path, include
 from . import views, apiviews
 
 from django.contrib.auth.views import LogoutView
 
-from rest_framework.routers import SimpleRouter
+# from rest_framework.routers import SimpleRouter
 
 from tasks.apiviews import TaskViewSet, ChangelogViewSet
 
-router = SimpleRouter()
-router.register("api/task", TaskViewSet)
-router.register("api/", ChangelogViewSet)
+from rest_framework_nested import routers
+
+router = routers.SimpleRouter()
+router.register(r"api/v1", TaskViewSet)
+
+api_router = routers.NestedSimpleRouter(
+    router,
+    "api/v1",
+    lookup="task",
+)
+api_router.register(r"history", ChangelogViewSet)
+# router.register("api/tasks", TaskViewSet)
 
 
 urlpatterns = [
@@ -53,22 +62,25 @@ urlpatterns = [
     path("user/signup/", views.UserCreateView.as_view()),
     path("user/login/", views.UserLoginView.as_view()),
     path("user/logout/", LogoutView.as_view()),
-] + router.urls
-
-urlpatterns += [
-    path(
-        "api/v1/<str:request_type>/",
-        apiviews.TaskListAPI.as_view(),
-        name="Tasks List API",
-    ),
-    path(
-        "api/v1/task/<int:task_id>/history/",
-        apiviews.ChangelogListAPI.as_view(),
-        name="Task Changelog list",
-    ),
-    path(
-        "api/v1/task/<int:task_id>/",
-        apiviews.DRFView.as_view(),
-        name="DRF View of task",
-    ),
+    path("", include(router.urls)),
+    path("", include(api_router.urls)),
 ]
+
+# urlpatterns += [
+#     path(
+#         "api/v1/<str:request_type>/",
+#         apiviews.TaskListAPI.as_view(),
+#         name="Tasks List API",
+#     ),
+#     path(
+#         "api/v1/task/<int:task_id>/history/",
+#         apiviews.ChangelogListAPI.as_view(),
+#         name="Task Changelog list",
+#     ),
+#     path(
+#         "api/v1/task/<int:task_id>/",
+#         apiviews.DRFView.as_view(),
+#         name="DRF View of task",
+#     ),
+#     # path("api/v1/task/<int:task_id>/history", ChangelogViewSet.as_view()),
+# ]

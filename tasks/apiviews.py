@@ -20,6 +20,7 @@ from django_filters.rest_framework import (
     NumberFilter,
 )
 
+
 import json
 
 
@@ -32,7 +33,7 @@ class TaskFilter(FilterSet):
 
 class ChangelogFilter(FilterSet):
     id = NumberFilter(lookup_expr="exact")
-    date = DateTimeFilter(lookup_expr="gte")
+    edit_time = DateTimeFilter(lookup_expr="gte")
 
 
 class ChangesSerializer(Field):
@@ -102,11 +103,14 @@ class ChangelogViewSet(ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ChangelogFilter
 
-    def get_queryset(self, id):
-        return Changelog.objects.filter(user=self.request.user, task=id)
+    def get_queryset(self, *args, **kwargs):
+        print(self.__dict__)
+        if "id" in kwargs.keys():
+            return Changelog.objects.filter(user=self.request.user, id=kwargs["id"])
+        return Changelog.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user, task=id)
+        serializer.save(user=self.request.user)
 
 
 class TaskListAPI(LoginRequiredMixin, APIView):
@@ -129,12 +133,18 @@ class TaskListAPI(LoginRequiredMixin, APIView):
 
 
 class ChangelogListAPI(LoginRequiredMixin, APIView):
+    def filter_queryset(self, request, queryset, view):
+        filter_class = self.get_filter_class(view, queryset)
+
+        if filter_class:
+            return filter_class()
+
     def get(self, request, task_id):
         changelog_list = Changelog.objects.filter(user=self.request.user, task=task_id)
 
         response = ChangelogSerializer(changelog_list, many=True).data
 
-        print(response)
+        # print(response)
         # print(self.request.__dict__)
 
         return Response(response)
@@ -142,7 +152,7 @@ class ChangelogListAPI(LoginRequiredMixin, APIView):
 
 class DRFView(APIView):
     def get(self, request, task_id):
-        print(f"\n\n{[x.id for x in Task.objects.filter(user=self.request.user)]}\n\n")
+        # print(f"\n\n{[x.id for x in Task.objects.filter(user=self.request.user)]}\n\n")
         task = Task.objects.filter(id=task_id, user=self.request.user).first()
 
         return Response(
