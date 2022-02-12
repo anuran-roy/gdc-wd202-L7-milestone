@@ -32,7 +32,7 @@ api_router = routers.NestedSimpleRouter(
     "api/v1",
     lookup="task",
 )
-api_router.register(r"history", ChangelogViewSet)
+api_router.register(r"history", ChangelogViewSet, basename="api/v1-history")
 # router.register("api/tasks", TaskViewSet)
 
 

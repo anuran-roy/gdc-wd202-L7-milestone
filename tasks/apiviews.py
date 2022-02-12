@@ -57,6 +57,7 @@ class ChangelogSerializer(ModelSerializer):
     class Meta:
         model = Changelog
         fields = (
+            "task",
             "diff",
             "edit_time",
             "user",
@@ -104,9 +105,12 @@ class ChangelogViewSet(ModelViewSet):
     filterset_class = ChangelogFilter
 
     def get_queryset(self, *args, **kwargs):
-        print(self.__dict__)
-        if "id" in kwargs.keys():
-            return Changelog.objects.filter(user=self.request.user, id=kwargs["id"])
+        print(self.request.__dict__)
+        if "task_pk" in self.request.parser_context["kwargs"].keys():
+            return Changelog.objects.filter(
+                user=self.request.user,
+                task=self.request.parser_context["kwargs"]["task_pk"],
+            )
         return Changelog.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):

@@ -132,33 +132,33 @@ class GenericTaskCreateView(AuthMixin, CreateView):
     form_class = TaskCreateForm
     template_name = "task_create.html"
 
-    # def form_valid(self, form):
-    #     if Task.objects.filter(
-    #         deleted=False,
-    #         priority=form.cleaned_data["priority"],
-    #         user=self.request.user,
-    #     ).exists():
-    #         queryset = (
-    #             Task.objects.filter(
-    #                 completed=False,
-    #                 deleted=False,
-    #                 priority__gte=form.cleaned_data["priority"],
-    #                 user=self.request.user,
-    #             )
-    #             .order_by("priority")
-    #             .select_for_update()
-    #         )
+    def form_valid(self, form):
+        #     if Task.objects.filter(
+        #         deleted=False,
+        #         priority=form.cleaned_data["priority"],
+        #         user=self.request.user,
+        #     ).exists():
+        #         queryset = (
+        #             Task.objects.filter(
+        #                 completed=False,
+        #                 deleted=False,
+        #                 priority__gte=form.cleaned_data["priority"],
+        #                 user=self.request.user,
+        #             )
+        #             .order_by("priority")
+        #             .select_for_update()
+        #         )
 
-    #         Task.objects.bulk_update(
-    #             sortPriorities(form.cleaned_data["priority"], queryset),
-    #             ["priority"],
-    #         )
+        #         Task.objects.bulk_update(
+        #             sortPriorities(form.cleaned_data["priority"], queryset),
+        #             ["priority"],
+        #         )
 
-    #     self.object = form.save(commit=False)
-    #     self.object.user = self.request.user
-    #     self.object.save()
+        self.object = form.save(commit=False)
+        self.object.user = self.request.user
+        self.object.save()
 
-    #     return HttpResponseRedirect(self.get_success_url())
+        return HttpResponseRedirect(self.get_success_url())
 
 
 class GenericTaskDetailView(LoginRequiredMixin, DetailView):
