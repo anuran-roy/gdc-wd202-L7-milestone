@@ -18,7 +18,6 @@ class Task(models.Model):
     title = models.CharField(max_length=100)
     # priority = models.IntegerField(validators=[MinValueValidator(1)], default=1)
     description = models.TextField()
-    completed = models.BooleanField(default=False)
     created_date = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)

@@ -73,7 +73,7 @@ class TaskSerializer(ModelSerializer):
             "id",
             "title",
             "description",
-            "completed",
+            # "completed",
             "status",
         )
 
@@ -113,41 +113,41 @@ class ChangelogViewSet(ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class TaskListAPI(LoginRequiredMixin, APIView):
-    def get(self, request, request_type):
-        if request_type in ["all", "completed", "incomplete"]:
-            if request_type == "completed":
-                tasks_list = Task.objects.filter(user=self.request.user, completed=True)
-            elif request_type == "incomplete":
-                tasks_list = Task.objects.filter(
-                    user=self.request.user, completed=False
-                )
-            else:
-                tasks_list = Task.objects.filter(user=self.request.user)
-        else:
-            tasks_list = []
+# class TaskListAPI(LoginRequiredMixin, APIView):
+#     def get(self, request, request_type):
+#         if request_type in ["all", "completed", "incomplete"]:
+#             if request_type == "completed":
+#                 tasks_list = Task.objects.filter(user=self.request.user, completed=True)
+#             elif request_type == "incomplete":
+#                 tasks_list = Task.objects.filter(
+#                     user=self.request.user, completed=False
+#                 )
+#             else:
+#                 tasks_list = Task.objects.filter(user=self.request.user)
+#         else:
+#             tasks_list = []
 
-        response = TaskSerializer(tasks_list, many=True).data
+#         response = TaskSerializer(tasks_list, many=True).data
 
-        return Response(response)
+#         return Response(response)
 
 
-class ChangelogListAPI(LoginRequiredMixin, APIView):
-    def filter_queryset(self, request, queryset, view):
-        filter_class = self.get_filter_class(view, queryset)
+# class ChangelogListAPI(LoginRequiredMixin, APIView):
+#     def filter_queryset(self, request, queryset, view):
+#         filter_class = self.get_filter_class(view, queryset)
 
-        if filter_class:
-            return filter_class()
+#         if filter_class:
+#             return filter_class()
 
-    def get(self, request, task_id):
-        changelog_list = Changelog.objects.filter(user=self.request.user, task=task_id)
+#     def get(self, request, task_id):
+#         changelog_list = Changelog.objects.filter(user=self.request.user, task=task_id)
 
-        response = ChangelogSerializer(changelog_list, many=True).data
+#         response = ChangelogSerializer(changelog_list, many=True).data
 
-        # print(response)
-        # print(self.request.__dict__)
+#         # print(response)
+#         # print(self.request.__dict__)
 
-        return Response(response)
+#         return Response(response)
 
 
 class DRFView(APIView):
@@ -160,7 +160,7 @@ class DRFView(APIView):
                 "priority": task.priority,
                 "title": task.title,
                 "description": task.description,
-                "status": "completed" if task.completed is True else "not completed",
+                "status": task.status,
             }
         )
 
@@ -169,17 +169,17 @@ class GenericTaskSerializer(Serializer):
     priority = serializers.IntegerField(min_value=1)
     task = serializers.CharField(max_length=100)
     description = serializers.CharField()
-    completed = serializers.BooleanField(default=False)
+    status = serializers.ChoiceField(choices=STATUS_CHOICES)
 
     def create(self, validated_data):
         title = validated_data.get("title")
         description = validated_data.get("description")
-        completed = validated_data.get("completed", False)
-        return Task(title=title, description=description, completed=completed)
+        status = validated_data.get("status", False)
+        return Task(title=title, description=description, status=status)
 
     def update(self, instance, validated_data):
         instance.priority = validated_data.get("priority", instance.priority)
-        instance.completed = validated_data.get("complete", instance.complete)
+        instance.status = validated_data.get("status", instance.status)
         instance.title = validated_data.get("title", instance.title)
         instance.description = validated_data.get("description", instance.description)
         return instance

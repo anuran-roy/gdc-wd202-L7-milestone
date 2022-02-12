@@ -77,7 +77,7 @@ class TaskCreateForm(ModelForm):
         self.fields["title"].widget.attrs["class"] = "p-4 m-4 bg-gray-200/75"
         self.fields["description"].widget.attrs["class"] = "p-4 m-4 bg-gray-200/75"
         # self.fields["priority"].widget.attrs["class"] = "p-4 m-4 bg-gray-200/75"
-        self.fields["completed"].widget.attrs["class"] = "p-4 m-4 bg-gray-200/75"
+        self.fields["status"].widget.attrs["class"] = "p-4 m-4 bg-gray-200/75"
 
     def clean_title(self):  # Format: create_<field>
         title = self.cleaned_data["title"]
@@ -93,7 +93,7 @@ class TaskCreateForm(ModelForm):
             # "priority",
             "title",
             "description",
-            "completed",
+            # "completed",
             "status",
         )
 
@@ -166,8 +166,8 @@ class GenericTaskDetailView(LoginRequiredMixin, DetailView):
     template_name = "task_detail.html"
 
     def get_success_url(self):
-        return Task.objects.filter(
-            deleted=False, completed=False, user=self.request.user
+        return Task.objects.filter(deleted=False, user=self.request.user).exclude(
+            status="COMPLETED"
         )
 
 
@@ -176,7 +176,7 @@ class GenericTaskDeleteView(AuthMixin, DeleteView):
 
 
 class GenericTaskView(LoginRequiredMixin, ListViewWithSearch):
-    queryset = Task.objects.filter(deleted=False, completed=False)
+    queryset = Task.objects.filter(deleted=False).exclude(status="COMPLETED")
     template_name = "tasks.html"
     context_object_name = "tasks"
     paginate_by = 5
@@ -185,13 +185,13 @@ class GenericTaskView(LoginRequiredMixin, ListViewWithSearch):
 class CompleteTaskView(AuthMixin, View):
     def get(self, request, pk):
         tasks = Task.objects.filter(id=pk, user=self.request.user)
-        tasks.update(completed=True)
+        tasks.update(status="COMPLETED")
 
         return HttpResponseRedirect("/tasks")
 
 
 class CompletedTasksView(AuthMixin, ListViewWithSearch):
-    queryset = Task.objects.filter(completed=True)
+    queryset = Task.objects.filter(status="COMPLETED")
     template_name = "completed.html"
     context_object_name = "completed"
     paginate_by = 5
