@@ -30,13 +30,14 @@ class Task(models.Model):
 
 
 class Changelog(models.Model):
-    diff = models.TextField(null=True, blank=True)
+    # diff = models.TextField(null=True, blank=True)
+    old_status = models.CharField(max_length=100)
+    new_status = models.CharField(max_length=100)
     edit_time = models.DateTimeField(auto_now=True)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Change on task {self.task.id} by {self.user} at {self.edit_time}"
+        return f"Change on task {self.task.id} by {self.task.user} at {self.edit_time}"
 
 
 def is_diff(obj1, obj2):
@@ -63,19 +64,19 @@ def log_changes(sender, **kwargs):
     print(f"\n\n{new_obj}\n\n")
     print(f"\n\n{existing_obj}\n\n")
 
-    diff: dict = {}
+    # diff: dict = {}
 
     if existing_obj is not None:
-        diff = {
-            i: (new_obj[i], existing_obj[i])
-            for i in obj_keys
-            if is_diff(new_obj[i], existing_obj[i])
-        }
-
-        chg = Changelog(
-            diff=json.dumps(diff),
-            task=kwargs["instance"],
-            user=kwargs["instance"].user,
-        )
-        print(f"\n\n{chg.__dict__}\n\n")
-        chg.save()
+        # diff = {
+        #     i: (new_obj[i], existing_obj[i])
+        #     for i in obj_keys
+        #     if is_diff(new_obj[i], existing_obj[i])
+        # }
+        if is_diff(existing_obj["status"], new_obj["status"]):
+            chg = Changelog(
+                old_status=existing_obj["status"],  # json.dumps(diff),
+                new_status=new_obj["status"],
+                task=kwargs["instance"],
+            )
+            print(f"\n\n{chg.__dict__}\n\n")
+            chg.save()

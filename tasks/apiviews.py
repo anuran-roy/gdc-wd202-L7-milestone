@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer, Serializer, Field
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
@@ -41,7 +41,7 @@ class ChangesSerializer(Field):
         return json.loads(instance)
 
     def to_internal_value(self, data):
-        return json.loads(data)
+        return None
 
 
 class UserSerializer(ModelSerializer):
@@ -51,16 +51,23 @@ class UserSerializer(ModelSerializer):
 
 
 class ChangelogSerializer(ModelSerializer):
-    user = UserSerializer(read_only=True)
-    diff = ChangesSerializer(read_only=True)
+    # user = UserSerializer(read_only=True)
+    # diff = ChangesSerializer(read_only=True)
+    # read_only = True
+    # read_only_fields = ("task", "old_status", "new_status", "edit_time")
+    # task = serializers.CharField(read_only=True)
+    # old_status = serializers.CharField(read_only=True)
+    # new_status = serializers.CharField(read_only=True)
+    # edit_time = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Changelog
         fields = (
             "task",
-            "diff",
+            "old_status",
+            "new_status",
             "edit_time",
-            "user",
+            # "user",
         )
 
 
@@ -79,7 +86,7 @@ class TaskSerializer(ModelSerializer):
         )
 
 
-class TaskViewSet(ModelViewSet):
+class TaskViewSet(ReadOnlyModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
 
@@ -95,7 +102,7 @@ class TaskViewSet(ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class ChangelogViewSet(ModelViewSet):
+class ChangelogViewSet(ReadOnlyModelViewSet):
     queryset = Changelog.objects.all()
     serializer_class = ChangelogSerializer
 
@@ -105,10 +112,11 @@ class ChangelogViewSet(ModelViewSet):
     filterset_class = ChangelogFilter
 
     def get_queryset(self, *args, **kwargs):
-        print(self.request.__dict__)
+        print(f"\n\nRequest dict = \n\n{self.request._user._wrapped.__dict__}\n\n")
         if "task_pk" in self.request.parser_context["kwargs"].keys():
+            # print(f"\n\nTotal request=\n\n{str(self.request.user)}\n\n")
             return Changelog.objects.filter(
-                user=self.request.user,
+                # user=self.request.task.user,
                 task=self.request.parser_context["kwargs"]["task_pk"],
             )
         return Changelog.objects.filter(user=self.request.user)
