@@ -14,15 +14,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path, include
-from . import views, apiviews
-
 from django.contrib.auth.views import LogoutView
 
-# from rest_framework.routers import SimpleRouter
-
-from tasks.apiviews import TaskViewSet, ChangelogViewSet
-
 from rest_framework_nested import routers
+
+from tasks import views
+from tasks.apiviews import TaskViewSet, ChangelogViewSet
 
 router = routers.SimpleRouter()
 router.register(r"api/v1", TaskViewSet)
@@ -33,7 +30,6 @@ api_router = routers.NestedSimpleRouter(
     lookup="task",
 )
 api_router.register(r"history", ChangelogViewSet, basename="api/v1-history")
-# router.register("api/tasks", TaskViewSet)
 
 
 urlpatterns = [
@@ -65,22 +61,3 @@ urlpatterns = [
     path("", include(router.urls)),
     path("", include(api_router.urls)),
 ]
-
-# urlpatterns += [
-#     path(
-#         "api/v1/<str:request_type>/",
-#         apiviews.TaskListAPI.as_view(),
-#         name="Tasks List API",
-#     ),
-#     path(
-#         "api/v1/task/<int:task_id>/history/",
-#         apiviews.ChangelogListAPI.as_view(),
-#         name="Task Changelog list",
-#     ),
-#     path(
-#         "api/v1/task/<int:task_id>/",
-#         apiviews.DRFView.as_view(),
-#         name="DRF View of task",
-#     ),
-#     # path("api/v1/task/<int:task_id>/history", ChangelogViewSet.as_view()),
-# ]

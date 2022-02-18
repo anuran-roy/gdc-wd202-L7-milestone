@@ -1,16 +1,4 @@
-# from django.views import View
 from django.views.generic.list import ListView
-
-# from django.views.generic.edit import CreateView, UpdateView, DeleteView
-# from django.views.generic.detail import DetailView
-
-# from django.views.generic.delete import DeleteView
-
-# from django.forms import ModelForm
-
-# from django.contrib.auth.forms import UserCreationForm
-
-# from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from tasks.models import Task

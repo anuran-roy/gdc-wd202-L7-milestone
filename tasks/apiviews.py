@@ -86,7 +86,7 @@ class TaskSerializer(ModelSerializer):
         )
 
 
-class TaskViewSet(ReadOnlyModelViewSet):
+class TaskViewSet(LoginRequiredMixin, ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
 
@@ -101,8 +101,19 @@ class TaskViewSet(ReadOnlyModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def form_valid(self, form):
+        if "status" in form.changed_data:
+            Changelog(
+                old_status=self.object.status,  # json.dumps(diff),
+                new_status=form.changed_data["status"],
+                task=self.object.id,
+            ).save()
 
-class ChangelogViewSet(ReadOnlyModelViewSet):
+        self.object = form.save()
+        self.object.save()
+
+
+class ChangelogViewSet(LoginRequiredMixin, ReadOnlyModelViewSet):
     queryset = Changelog.objects.all()
     serializer_class = ChangelogSerializer
 
@@ -112,7 +123,6 @@ class ChangelogViewSet(ReadOnlyModelViewSet):
     filterset_class = ChangelogFilter
 
     def get_queryset(self, *args, **kwargs):
-        print(f"\n\nRequest dict = \n\n{self.request._user._wrapped.__dict__}\n\n")
         if "task_pk" in self.request.parser_context["kwargs"].keys():
             # print(f"\n\nTotal request=\n\n{str(self.request.user)}\n\n")
             return Changelog.objects.filter(
@@ -157,7 +167,6 @@ class ChangelogViewSet(ReadOnlyModelViewSet):
 #         response = ChangelogSerializer(changelog_list, many=True).data
 
 #         # print(response)
-#         # print(self.request.__dict__)
 
 #         return Response(response)
 

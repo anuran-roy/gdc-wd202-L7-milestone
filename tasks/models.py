@@ -1,10 +1,6 @@
 from django.db import models
-from django.dispatch import receiver
-from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
-from django.core.validators import MinValueValidator
 
 from django.contrib.auth.models import User
-import json
 
 STATUS_CHOICES = (
     ("PENDING", "PENDING"),
@@ -16,7 +12,6 @@ STATUS_CHOICES = (
 
 class Task(models.Model):
     title = models.CharField(max_length=100)
-    # priority = models.IntegerField(validators=[MinValueValidator(1)], default=1)
     description = models.TextField()
     created_date = models.DateTimeField(auto_now=True)
     deleted = models.BooleanField(default=False)
@@ -30,7 +25,6 @@ class Task(models.Model):
 
 
 class Changelog(models.Model):
-    # diff = models.TextField(null=True, blank=True)
     old_status = models.CharField(max_length=100)
     new_status = models.CharField(max_length=100)
     edit_time = models.DateTimeField(auto_now=True)
@@ -45,38 +39,3 @@ def is_diff(obj1, obj2):
     str_rep2: str = str(obj2)
 
     return str_rep1 != str_rep2
-
-
-@receiver(pre_save, sender=Task)
-def log_changes(sender, **kwargs):
-    new_obj = kwargs["instance"].__dict__
-    existing_obj = (
-        Task.objects.filter(id=kwargs["instance"].id)[0].__dict__
-        if Task.objects.filter(id=kwargs["instance"].id).exists()
-        else None
-    )
-    obj_keys: list = (
-        ["status"] if existing_obj is not None else []
-    )  # list(existing_obj.keys()) if existing_obj is not None else []
-    _ = obj_keys.remove("_state") if "_state" in obj_keys else None
-    print(f"\n\n{kwargs}\n\n")
-    print(f"\n\n{sender}\n\n")
-    print(f"\n\n{new_obj}\n\n")
-    print(f"\n\n{existing_obj}\n\n")
-
-    # diff: dict = {}
-
-    if existing_obj is not None:
-        # diff = {
-        #     i: (new_obj[i], existing_obj[i])
-        #     for i in obj_keys
-        #     if is_diff(new_obj[i], existing_obj[i])
-        # }
-        if is_diff(existing_obj["status"], new_obj["status"]):
-            chg = Changelog(
-                old_status=existing_obj["status"],  # json.dumps(diff),
-                new_status=new_obj["status"],
-                task=kwargs["instance"],
-            )
-            print(f"\n\n{chg.__dict__}\n\n")
-            chg.save()
