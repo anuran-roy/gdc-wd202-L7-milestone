@@ -10,6 +10,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from tasks.models import Task, Changelog
 from tasks.utils import AuthMixin, ListViewWithSearch
 from tasks.forms import UserAuthenticationForm, UserCreationFormCustom, TaskCreateForm
+from django.contrib.auth.models import User
 
 
 def index(request):

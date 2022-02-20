@@ -2,6 +2,7 @@ from django.forms import ModelForm
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
 from tasks.models import Task, Changelog
+from django.contrib.auth.models import User
 
 
 class UserAuthenticationForm(AuthenticationForm):
