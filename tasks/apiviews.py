@@ -1,8 +1,5 @@
-# from django.views import View
-# from django.http.response import JsonResponse
 from tasks.models import Task, Changelog, STATUS_CHOICES
 from django.contrib.auth.models import User
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -58,7 +55,6 @@ class ChangelogSerializer(ModelSerializer):
             "old_status",
             "new_status",
             "edit_time",
-            # "user",
         )
 
 
@@ -72,12 +68,11 @@ class TaskSerializer(ModelSerializer):
             "id",
             "title",
             "description",
-            # "completed",
             "status",
         )
 
 
-class TaskViewSet(LoginRequiredMixin, ModelViewSet):
+class TaskViewSet(ModelViewSet):
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
 
@@ -97,8 +92,6 @@ class TaskViewSet(LoginRequiredMixin, ModelViewSet):
         serializer.save()
         new_status = serializer._kwargs["data"]["status"]
 
-        print(object.status, new_status)
-
         if object.status != new_status:
             Changelog(
                 old_status=object.status,  # json.dumps(diff),
@@ -117,12 +110,10 @@ class ChangelogViewSet(ReadOnlyModelViewSet):
     filterset_class = ChangelogFilter
 
     def get_queryset(self, *args, **kwargs):
-        print(kwargs)
-        if "task_pk" in self.request.parser_context["kwargs"]:
-            # print(f"\n\nTotal request=\n\n{str(self.request.user)}\n\n")
+        if "task_pk" in self.kwargs:
             return Changelog.objects.filter(
-                task__user=self.request.task.user,
-                task=self.request.parser_context["kwargs"]["task_pk"],
+                task__user=self.request.user,
+                task=self.kwargs["task_pk"],
             )
         return Changelog.objects.filter(task__user=self.request.user)
 
