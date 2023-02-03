@@ -3,7 +3,7 @@ black==21.12b0
 certifi==2021.10.8
 charset-normalizer==2.0.10
 click==8.0.3
-Django==4.0.1
+Django==4.0.9
 django-filter==21.1
 djangorestframework==3.13.1
 drf-nested-routers==0.93.4
